@@ -112,8 +112,10 @@ def _product_reviews(product, page, rating):
     rating_block = (summary or {}).get("rating") or record.get("rating")
     # reviews with text: the summary page and the product page each carry it
     # on some products only (top level vs inside the rating block)
-    with_comments = ((summary or {}).get("with_comments") or (rating_block or {}).get("with_comments")
-                     or (record.get("rating") or {}).get("with_comments"))
+    with_comments = next((v for v in ((summary or {}).get("with_comments"),
+                                      (rating_block or {}).get("with_comments"),
+                                      (record.get("rating") or {}).get("with_comments"))
+                          if v is not None), None)
     if rating_block is not None and rating_block.get("with_comments") is None and with_comments is not None:
         rating_block = dict(rating_block, with_comments=with_comments)
     ai_summary = (summary or {}).get("ai_summary")
