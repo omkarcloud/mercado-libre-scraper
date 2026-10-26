@@ -29,8 +29,8 @@ from mercado_libre import refs
 
 # Search results stop at 2000 (the site's own results_limit) = 40 pages of 50.
 MAX_SEARCH_PAGE = 40
-# Reviews: offset/limit XHR, 30 per page; the site serves at most ~1500.
-MAX_REVIEWS_PAGE = 50
+# Reviews: offset/limit XHR, 30 per page; the site serves the first 11 pages (330 reviews) of a query.
+MAX_REVIEWS_PAGE = 11
 # Deals: 500 offers per feed; ?page=N steps the offset by 20 (each page
 # carries 25, overlapping), so the last page is 25.
 MAX_DEALS_PAGE = 25
@@ -115,7 +115,7 @@ class ProductSchema(BaseSchema):
 class ProductReviewsSchema(BaseSchema):
     product = ProductRefField(metadata={
         "description": "item id, catalog product id or the product link (an item resolves to its catalog product's reviews)"})
-    page = PageField(max_page=MAX_REVIEWS_PAGE, metadata={"description": "page number, 30 reviews per page"})
+    page = PageField(max_page=MAX_REVIEWS_PAGE, metadata={"description": "page number, 30 reviews per page (Mercado Libre serves the first 330 reviews of a query)"})
     rating = PositiveInt(max_value=5, metadata={"description": "only reviews with this star rating (1-5)"})
 
 

@@ -59,6 +59,9 @@ def test_reviews_schema():
         schemas.ProductReviewsSchema().load({"product": "MLA39328824", "rating": "6"})
     with pytest.raises(ValidationError):
         schemas.ProductReviewsSchema().load({"product": "MLA39328824", "page": "0"})
+    with pytest.raises(ValidationError):   # the site serves 11 pages of 30 per review query
+        schemas.ProductReviewsSchema().load({"product": "MLA39328824", "page": "12"})
+    assert schemas.ProductReviewsSchema().load({"product": "MLA39328824", "page": "11"})["page"] == 11
 
 
 # ---- search ---------------------------------------------------------------------------------

@@ -20,6 +20,7 @@ from mercado_libre.fetch import (MercadoLibreBadRequest, MercadoLibreNotFound, f
                                  fetch_stores, fetch_stores_landing, get_page)
 
 REVIEWS_PAGE_SIZE = 30
+REVIEWS_MAX_PAGES = 11   # the site's own depth limit per review query (330 reviews)
 STORES_PAGE_SIZE = 100
 
 
@@ -27,10 +28,24 @@ def _filters(data):
     return {k: data.get(k) for k in ("page", "sort", "condition", "price_min", "price_max", "free_shipping")}
 
 
-def _listing(url, label, page, site, not_found_message, query=None, strip_query=False):
+def _empty_listing(page, site, query, final_url):
+    """A search with no matches is an empty page, not an error."""
+    return {"site": site, "query": query, "category": None, "vertical": None, "sort": None,
+            "sort_options": None, "applied_filters": None, "available_filters": None, "breadcrumb": None,
+            "related_searches": None, "header": None, "results": [],
+            "pagination": {"page": page, "items_per_page": refs.PAGE_SIZE, "total_pages": 0, "total_count": 0},
+            "link": final_url.replace("?skipWebview=true", "").replace("&skipWebview=true", "")}
+
+
+def _listing(url, label, page, site, not_found_message, query=None, strip_query=False, empty_ok=False):
+    """empty_ok: the site's "no results" shell means zero matches (keyword
+    and classifieds searches) rather than an unknown category / store /
+    seller, which stay a 404."""
     html, final_url = fetch_listing(url, label)
     state = parsers.extract_state(html)
     if parsers.is_no_results_page(state):
+        if empty_ok:
+            return _empty_listing(page, site, query, final_url)
         raise MercadoLibreNotFound(not_found_message)
     result = parsers.parse_listing(state, page=page, site=site)
     if result is None:
@@ -46,7 +61,7 @@ def _listing(url, label, page, site, not_found_message, query=None, strip_query=
 def _products_search(query, site, page, sort, condition, price_min, price_max, free_shipping):
     url = refs.search_url(site, query, page=page, sort=sort, condition=condition, price_min=price_min,
                          price_max=price_max, free_shipping=free_shipping)
-    return _listing(url, f"search {query!r}", page, site, "no results for this search")
+    return _listing(url, f"search {query!r}", page, site, "no results for this search", query=query, empty_ok=True)
 
 
 def products_search(**data):
@@ -95,24 +110,41 @@ def _product_reviews(product, page, rating):
     if not is_item:
         summary = parsers.parse_reviews_summary(parsers.extract_state(fetch_reviews_summary(site, object_id)))
     rating_block = (summary or {}).get("rating") or record.get("rating")
-    total = rating_block.get("count") if rating_block else None
-    if rating and rating_block and (rating_block.get("stars") or {}).get(str(rating)):
-        total = rating_block["stars"][str(rating)].get("count")
-    elif rating:
-        total = None
-    if total is None and not reviews:
-        total = 0
-    total_pages = math.ceil(total / REVIEWS_PAGE_SIZE) if total else (0 if total == 0 else None)
-    pagination = {"page": page, "items_per_page": REVIEWS_PAGE_SIZE, "total_pages": total_pages, "total_count": total}
-    if total is None:
-        pagination = {"page": page, "items_per_page": REVIEWS_PAGE_SIZE, "has_next": len(reviews) == REVIEWS_PAGE_SIZE,
+    # reviews with text: the summary page and the product page each carry it
+    # on some products only (top level vs inside the rating block)
+    with_comments = ((summary or {}).get("with_comments") or (rating_block or {}).get("with_comments")
+                     or (record.get("rating") or {}).get("with_comments"))
+    if rating_block is not None and rating_block.get("with_comments") is None and with_comments is not None:
+        rating_block = dict(rating_block, with_comments=with_comments)
+    ai_summary = (summary or {}).get("ai_summary")
+    if ai_summary is None and record.get("reviews_ai_summary"):
+        ai_summary = {"text": record["reviews_ai_summary"], "updated_at": None}
+    # Mercado Libre serves the first REVIEWS_MAX_PAGES pages of any review
+    # query and empty pages after that (checked 2026-10-26: page 11 = 30 rows,
+    # page 12 = 0 for a product with 20k+ text reviews), so totals and the
+    # next link stop there rather than promising pages that are always empty.
+    if rating:
+        pagination = {"page": page, "items_per_page": REVIEWS_PAGE_SIZE,
+                      "has_next": len(reviews) == REVIEWS_PAGE_SIZE and page < REVIEWS_MAX_PAGES,
                       "total_pages": None, "total_count": None}
+    else:
+        total = with_comments if with_comments is not None else (rating_block or {}).get("count")
+        if total is None and not reviews:
+            total = 0
+        if total is None:
+            pagination = {"page": page, "items_per_page": REVIEWS_PAGE_SIZE,
+                          "has_next": len(reviews) == REVIEWS_PAGE_SIZE and page < REVIEWS_MAX_PAGES,
+                          "total_pages": None, "total_count": None}
+        else:
+            reachable = min(total, REVIEWS_PAGE_SIZE * REVIEWS_MAX_PAGES)
+            pagination = {"page": page, "items_per_page": REVIEWS_PAGE_SIZE,
+                          "total_pages": math.ceil(reachable / REVIEWS_PAGE_SIZE), "total_count": total}
     return {
         "object_id": object_id,
         "site": site,
         "rating": rating_block,
-        "with_comments": (summary or {}).get("with_comments"),
-        "ai_summary": (summary or {}).get("ai_summary"),
+        "with_comments": with_comments,
+        "ai_summary": ai_summary,
         "media": (summary or {}).get("media"),
         "filter_rating": rating,
         "results": reviews,
@@ -364,7 +396,7 @@ def search_suggest(**data):
 def _classifieds_search(listing, page, sort, price_min, price_max):
     url = refs.listing_page_url(listing["link"], page=page, sort=sort, price_min=price_min, price_max=price_max)
     result = _listing(url, f"classifieds {listing['link']}", page, listing["site"],
-                      "no listings at this link", strip_query=True)
+                      "no listings at this link", strip_query=True, empty_ok=True)
     result["requested_link"] = listing["link"]
     return result
 

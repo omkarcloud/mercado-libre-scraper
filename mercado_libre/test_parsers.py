@@ -83,7 +83,9 @@ def test_search_polycard(search):
     assert card["price"]["installments"]["quantity"] == 18 and card["price"]["installments"]["is_interest_free"] is True
     assert card["seller"] == {"name": "Apple", "is_official_store": True}
     assert card["rating"] == 4.9 and card["sold_quantity"] == 1000
-    assert card["shipping"]["is_free"] is True and card["shipping"]["is_fulfillment"] is True
+    # "Llega gratis hoy por ser tu primera compra": free for a first purchase only
+    assert card["shipping"]["is_free"] is False and card["shipping"]["is_free_for_first_purchase"] is True
+    assert card["shipping"]["is_fulfillment"] is True
     assert card["deal_ends_at"] == "2026-10-24T14:59:00Z"
     assert card["variations"] == ["Blanco", "Negro"]
     assert card["image"].startswith("https://http2.mlstatic.com/D_NQ_NP_") and card["image"].endswith("-O.webp")
@@ -122,7 +124,7 @@ def test_category_listing_marks_ads():
 def test_brazil_listing_parses_the_same_way():
     page = P.parse_listing(state("search_iphone_mlb.state.json"), page=1)
     assert page["site"] == "MLB" and page["results"][0]["id"].startswith("MLB")
-    assert page["results"][0]["shipping"]["is_free"] is True   # "Chegará grátis"
+    assert page["results"][0]["shipping"]["is_free_for_first_purchase"] is True   # "grátis ... por ser sua primeira compra"
     assert page["results"][0]["price"]["current"]["currency"] == "BRL"
 
 
@@ -377,3 +379,50 @@ def test_autosuggest():
     assert rows[0]["query"] == "Iphone" and rows[0]["is_verified_store"] is False
     assert P.parse_autosuggest({"q": "x", "suggested_queries": []}) == []
     assert P.parse_autosuggest(None) == []
+
+
+# ---- fixes found while building the Apify actors (2026-10-26) ---------------------------------
+
+def test_promotion_placeholders_are_filled():
+    page = P.parse_listing(state("category_smartphones_mla.state.json"), page=1)
+    promos = [p for card in page["results"] for p in card["promotions"] or []]
+    assert "858,853.65 ARS con Cupón" in promos
+    assert not any("{" in p for p in promos)
+    brazil = P.parse_listing(state("search_iphone_mlb.state.json"), page=1)
+    assert not any("{" in p for card in brazil["results"] for p in card["promotions"] or [])
+
+
+def test_plain_free_shipping_stays_free():
+    deals = P.parse_deals(state("deals_page1_mla.state.json"), page=1)
+    shipping = deals["results"][0]["shipping"]
+    assert shipping["text"] == ["Llega gratis hoy"]
+    assert shipping["is_free"] is True and shipping["is_free_for_first_purchase"] is False
+
+
+def test_cards_always_carry_user_product_id():
+    for name in ("search_iphone_mla.html", "classifieds_apartments_caba_mla.state.json", "search_used_mla.state.json"):
+        page = P.parse_listing(state(name), page=1)
+        assert all("user_product_id" in card for card in page["results"])
+
+
+def test_item_page_variation_options_have_no_repeated_ids():
+    record = P.parse_product(state("item_necklace_variations_mla.state.json"))
+    assert record["id"] == "MLA1932888020" and record["product_id"] is None
+    letter = record["variations"][0]
+    assert letter["name"] == "Color" and letter["selected"] == "A"
+    assert [o["id"] for o in letter["options"]] == [None] * len(letter["options"])
+    assert [o["name"] for o in letter["options"] if o["is_selected"]] == ["A"]
+    length = record["variations"][1]
+    assert [o["name"] for o in length["options"]] == ["x40cm", "x45cm", "x50cm"]
+    # catalog pages keep each option's own product id
+    catalog = P.parse_product(state("product_moto_g04s_mla.html"))
+    assert catalog["variations"][0]["options"][0]["id"] == "MLA39356676"
+
+
+def test_ordinary_classified_reads_location_and_points():
+    record = P.parse_classified(state("classified_apartment_rent_mla.state.json"))
+    assert record["location"]["address"] == "Rodriguez Peña Al 1800, Recoleta, Capital Federal, Capital Federal"
+    assert record["location"]["coordinates"] == {"latitude": -34.5900065, "longitude": -58.3881185}
+    assert record["points_of_interest"][0] == {"category": "Transporte", "summary": "5 estaciones de metro", "places": None}
+    groups = [g["group"] for g in record["attributes"]]
+    assert groups.count("highlights") == 1 and groups[-1] == "summary"

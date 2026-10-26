@@ -351,8 +351,14 @@ def parse_polycard(card, site=None, position=None):
         if text:
             shipping_texts.append(text)
     shipping_blob = " ".join(shipping_texts).lower()
+    shipping_keys = {v.get("key") for line in body("shipping_v2") or [] for v in line.get("values") or []}
+    # "Llega gratis hoy por ser tu primera compra": free only for a new buyer
+    is_first_purchase_offer = "new_buyer" in shipping_keys or "primera compra" in shipping_blob or "primeira compra" in shipping_blob
+    mentions_free = "gratis" in shipping_blob or "grátis" in shipping_blob
     is_full = any(v.get("key") in ("full_icon", "vpp_full_icon") for line in body("shipping_v2") or [] for v in line.get("values") or [])
-    promotions = [p.get("text") for p in body("promotions") or [] if isinstance(p, dict) and p.get("text")]
+    promotions = [_render(p.get("text"), p.get("values")) for p in body("promotions") or []
+                  if isinstance(p, dict) and p.get("text")]
+    promotions = [p for p in promotions if p]
     countdown = comps.get("highlight_countdown")
     variations = pc.get("variations_compacted") or {}
     pictures = (pc.get("pictures") or {}).get("pictures") or []
@@ -388,7 +394,8 @@ def parse_polycard(card, site=None, position=None):
         "sold_quantity": sold_quantity,
         "shipping": {
             "text": shipping_texts or None,
-            "is_free": ("gratis" in shipping_blob or "grátis" in shipping_blob) if shipping_texts else None,
+            "is_free": (mentions_free and not is_first_purchase_offer) if shipping_texts else None,
+            "is_free_for_first_purchase": (mentions_free and is_first_purchase_offer) if shipping_texts else None,
             "is_fulfillment": is_full if shipping_texts else None,
         } if shipping_texts else None,
         "highlight": highlight_text,
@@ -408,8 +415,6 @@ def parse_polycard(card, site=None, position=None):
         "image": _picture_link(picture_id),
         "position": position,
     }
-    if record["user_product_id"] is None:
-        record.pop("user_product_id")
     return record
 
 
@@ -676,21 +681,29 @@ def _seller_from_vpp(components, event):
     return out
 
 
-def _variations(components):
+def _variations(components, item_id=None):
+    """outside_variations pickers. On a catalog product page each option is
+    another product (its own id and link); on a plain item page every option
+    repeats the item's own id, so those ids are null and the option name is
+    the identifier."""
     pickers = []
     for picker in (components.get("outside_variations") or {}).get("pickers") or []:
         options = []
         for product in picker.get("products") or []:
             price = product.get("price") or {}
+            option_id = product.get("id")
+            if option_id and option_id == item_id:
+                option_id = None
             options.append({
-                "id": product.get("id"),
+                "id": option_id,
                 "name": _text(product.get("label")) or _text(product.get("option_label")),
                 "link": _clean_link(product.get("permalink")),
                 "image": _picture_link((product.get("picture") or {}).get("id")),
                 "price": _money({"value": price.get("value"), "currency": price.get("currency_id")}) if price else None,
                 "previous_price": _money({"value": price.get("original_value"), "currency": price.get("currency_id")}) if price and price.get("original_value") else None,
                 "stock": _text(product.get("stock")),
-                "is_selected": product.get("id") == picker.get("selected_option_id") or _text(product.get("label")) == _text(picker.get("selected_option")),
+                "is_selected": (product.get("decoration_type") == "SELECTED"
+                                or _text(product.get("option_label") or product.get("label")) == _text(picker.get("selected_option"))),
             })
         pickers.append({"id": picker.get("id"), "name": (_text(picker.get("label")) or "").rstrip(":") or picker.get("id"),
                         "selected": _text(picker.get("selected_option")), "options": options or None})
@@ -815,7 +828,7 @@ def parse_product(state, page_url=None, site=None):
         "sold_quantity": _int(event.get("sold_quantity")),
         "price": price,
         "offers": _buy_box_offers(components, currency),
-        "variations": _variations(components),
+        "variations": _variations(components, item_id),
         "stock": {
             "has_stock": bool(event.get("has_stock")) if "has_stock" in event else (available or 0) > 0,
             "available_quantity": available,
@@ -869,7 +882,7 @@ def _rows_text(comp):
 
 
 def _location_block(components):
-    location = components.get("location") or {}
+    location = components.get("location") or components.get("location_and_points") or {}
     rows = _rows_text(location)
     coords = _find_coordinates(location.get("map_info") or location.get("map") or components.get("map_configuration"))
     proximity = _rows_text(components.get("item_proximity"))
@@ -886,7 +899,7 @@ def _features_groups(components):
         if comp_key == "highlighted_specs_res":
             attributes = [{"name": None, "value": _text(a.get("label"))} for a in comp.get("attributes") or [] if _text(a.get("label"))]
             if attributes:
-                groups.append({"group": _text(comp.get("title")) or "highlights", "attributes": attributes})
+                groups.append({"group": _text(comp.get("title")) or "summary", "attributes": attributes})
             continue
         highlights, spec_groups = _key_values(comp.get("components") or [])
         if highlights:
@@ -961,7 +974,8 @@ def parse_classified(state, page_url=None, site=None):
             models.append({"price_label": _text(row.get("upper_label")), "price": _text(row.get("title")),
                            "description": _text(row.get("subtitle")), "images": pictures or None})
     poi = []
-    poi_comp = components.get("points_of_interest") or ist.get("points_of_interest") or {}
+    poi_comp = (components.get("points_of_interest") or ist.get("points_of_interest")
+                or components.get("location_and_points") or {})
     for group in poi_comp.get("categories") or poi_comp.get("groups") or []:
         if isinstance(group, dict):
             poi.append({"category": _text(group.get("title")), "summary": (_text(group.get("subtitle")) or "").rstrip(", ") or None,
