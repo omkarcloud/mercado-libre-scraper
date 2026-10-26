@@ -1,0 +1,374 @@
+{
+ "search_iphone_mla": {
+  "url": "https://listado.mercadolibre.com.ar/iphone",
+  "final": "https://listado.mercadolibre.com.ar/iphone?skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 2681444,
+  "entry": "___search-index.mobile",
+  "title": ""
+ },
+ "search_iphone_page2_price_asc_mla": {
+  "url": "https://listado.mercadolibre.com.ar/iphone_Desde_51_OrderId_PRICE_NoIndex_True",
+  "final": "https://listado.mercadolibre.com.ar/iphone_Desde_51_OrderId_PRICE_NoIndex_True?skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 1267759,
+  "entry": "___search-index.mobile",
+  "title": ""
+ },
+ "search_used_mla": {
+  "url": "https://listado.mercadolibre.com.ar/iphone_ITEM*CONDITION_2230581_NoIndex_True",
+  "final": "https://listado.mercadolibre.com.ar/iphone_ITEM*CONDITION_2230581_NoIndex_True?skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 1250070,
+  "entry": "___search-index.mobile",
+  "title": ""
+ },
+ "search_nomatch_mla": {
+  "url": "https://listado.mercadolibre.com.ar/qwzxv-asdkjh-98127",
+  "final": "https://listado.mercadolibre.com.ar/qwzxv-asdkjh-98127?skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 1276295,
+  "entry": "___search-index.mobile",
+  "title": ""
+ },
+ "search_iphone_mlb": {
+  "url": "https://lista.mercadolivre.com.br/iphone",
+  "final": "https://lista.mercadolivre.com.br/iphone?skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 2814874,
+  "entry": "___search-index.mobile",
+  "title": ""
+ },
+ "category_smartphones_mla": {
+  "url": "https://listado.mercadolibre.com.ar/celulares-telefonia/celulares-smartphones/",
+  "final": "https://listado.mercadolibre.com.ar/celulares-telefonia-smartphones?skipWebview=true",
+  "status": 200,
+  "hops": 1,
+  "len": 1765090,
+  "entry": "___search-index.mobile",
+  "title": ""
+ },
+ "category_by_id_mla": {
+  "url": "https://listado.mercadolibre.com.ar/_CategoryId_MLA1055",
+  "final": "https://listado.mercadolibre.com.ar/_CategoryId_MLA1055?skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 365216,
+  "entry": null,
+  "title": ""
+ },
+ "product_moto_g04s_mla": {
+  "url": "https://www.mercadolibre.com.ar/p/MLA39328824",
+  "final": "https://www.mercadolibre.com.ar/motorola-moto-g04s-sunrise-orange-64gb-4gb/p/MLA39328824?skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 2122164,
+  "entry": "vpp-render-index.mobile",
+  "title": ""
+ },
+ "product_user_product_mla": {
+  "url": "https://www.mercadolibre.com.ar/up/MLAU3735180826",
+  "final": "https://www.mercadolibre.com.ar/up/MLAU3735180826?skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 1630150,
+  "entry": "vpp-render-index.mobile",
+  "title": ""
+ },
+ "item_redirect_mla": {
+  "url": "https://articulo.mercadolibre.com.ar/MLA-1918268342-_JM",
+  "final": "https://www.mercadolibre.com.ar/motorola-moto-g04s-sunrise-orange-64gb-4gb/p/MLA39328824?pdp_filters=item_id:MLA1988557292&skipWebview=true",
+  "status": 200,
+  "hops": 1,
+  "len": 993945,
+  "entry": "vpp-render-index.mobile",
+  "title": ""
+ },
+ "product_not_found_mla": {
+  "url": "https://www.mercadolibre.com.ar/p/MLA99999999999",
+  "final": "https://www.mercadolibre.com.ar/p/MLA99999999999?skipWebview=true",
+  "status": 404,
+  "hops": 0,
+  "len": 76757,
+  "entry": null,
+  "title": ""
+ },
+ "item_not_found_mla": {
+  "url": "https://articulo.mercadolibre.com.ar/MLA-999999999999-_JM",
+  "final": "https://articulo.mercadolibre.com.ar/MLA-999999999999-_JM?skipWebview=true",
+  "status": 404,
+  "hops": 0,
+  "len": 76763,
+  "entry": null,
+  "title": ""
+ },
+ "product_mlb": {
+  "url": "https://www.mercadolivre.com.br/p/MLB22826188",
+  "final": "https://www.mercadolivre.com.br/notebook-exo-smart-t38-cinza-14-1366-px-x-768-px-disco-ssd-emmc-128-gb-intel-n4020-4gb-de-ram/p/MLB22826188?skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 1682232,
+  "entry": "vpp-render-index.mobile",
+  "title": ""
+ },
+ "best_sellers_smartphones_mla": {
+  "url": "https://www.mercadolibre.com.ar/mas-vendidos/MLA1055",
+  "final": "https://www.mercadolibre.com.ar/mas-vendidos/MLA1055?skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 751388,
+  "entry": "mas-vendidos-itemId-index.mobile",
+  "title": ""
+ },
+ "best_sellers_unknown_mla": {
+  "url": "https://www.mercadolibre.com.ar/mas-vendidos/MLA999999999",
+  "final": "https://www.mercadolibre.com.ar/mas-vendidos/MLA999999999?skipWebview=true",
+  "status": 404,
+  "hops": 0,
+  "len": 73561,
+  "entry": "5xx-index",
+  "title": ""
+ },
+ "deals_page1_mla": {
+  "url": "https://www.mercadolibre.com.ar/ofertas",
+  "final": "https://www.mercadolibre.com.ar/ofertas?skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 679012,
+  "entry": "nativeView",
+  "title": ""
+ },
+ "deals_page3_category_mla": {
+  "url": "https://www.mercadolibre.com.ar/ofertas?page=3&category=MLA1055",
+  "final": "https://www.mercadolibre.com.ar/ofertas?page=3&category=MLA1055&skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 685796,
+  "entry": "nativeView",
+  "title": ""
+ },
+ "deals_page999_mla": {
+  "url": "https://www.mercadolibre.com.ar/ofertas?page=999",
+  "final": "https://www.mercadolibre.com.ar/ofertas?page=999&skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 710056,
+  "entry": "nativeView",
+  "title": ""
+ },
+ "seller_items_71229887_mla": {
+  "url": "https://listado.mercadolibre.com.ar/_CustId_71229887",
+  "final": "https://listado.mercadolibre.com.ar/_CustId_71229887?skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 1367024,
+  "entry": "___search-index.mobile",
+  "title": ""
+ },
+ "seller_items_unknown_mla": {
+  "url": "https://listado.mercadolibre.com.ar/_CustId_1",
+  "final": "https://listado.mercadolibre.com.ar/_CustId_1?skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 275545,
+  "entry": null,
+  "title": ""
+ },
+ "store_samsung_mla": {
+  "url": "https://tienda.mercadolibre.com.ar/samsung",
+  "final": "https://tienda.mercadolibre.com.ar/samsung?skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 2409757,
+  "entry": "___search-index.mobile",
+  "title": ""
+ },
+ "store_samsung_www_mla": {
+  "url": "https://www.mercadolibre.com.ar/tienda/samsung",
+  "final": "https://www.mercadolibre.com.ar/tiendas-oficiales?skipWebview=true",
+  "status": 200,
+  "hops": 1,
+  "len": 980970,
+  "entry": "landing",
+  "title": "Tiendas Oficiales"
+ },
+ "store_unknown_mla": {
+  "url": "https://tienda.mercadolibre.com.ar/zzqq-no-such-store-123",
+  "final": "https://tienda.mercadolibre.com.ar/zzqq-no-such-store-123?skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 364861,
+  "entry": null,
+  "title": ""
+ },
+ "classifieds_apartments_caba_mla": {
+  "url": "https://inmuebles.mercadolibre.com.ar/departamentos/venta/capital-federal/",
+  "final": "https://inmuebles.mercadolibre.com.ar/departamentos/venta/capital-federal/?skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 2431066,
+  "entry": "___search-index.mobile",
+  "title": ""
+ },
+ "classifieds_cars_corolla_mla": {
+  "url": "https://autos.mercadolibre.com.ar/toyota/corolla/",
+  "final": "https://autos.mercadolibre.com.ar/toyota/corolla/?skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 2144992,
+  "entry": "___search-index.mobile",
+  "title": ""
+ },
+ "classified_apartment_mla": {
+  "url": "https://departamento.mercadolibre.com.ar/MLA-4117637236-valle-y-jose-m-moreno-3-y-4-ambientes-premium-_JM",
+  "final": "https://departamento.mercadolibre.com.ar/MLA-4117637236-valle-y-jose-m-moreno-3-y-4-ambientes-premium-_JM?skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 1279338,
+  "entry": "vip-render-index.mobile",
+  "title": ""
+ },
+ "classified_car_mla": {
+  "url": "https://auto.mercadolibre.com.ar/MLA-4006670502-toyota-corolla-18-xei-mt-140cv-_JM",
+  "final": "https://auto.mercadolibre.com.ar/MLA-4006670502-toyota-corolla-18-xei-mt-140cv-_JM?skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 1335676,
+  "entry": "vip-render-index.mobile",
+  "title": ""
+ },
+ "classified_not_found_mla": {
+  "url": "https://auto.mercadolibre.com.ar/MLA-999999999999-_JM",
+  "final": "https://auto.mercadolibre.com.ar/MLA-999999999999-_JM?skipWebview=true",
+  "status": 404,
+  "hops": 0,
+  "len": 76758,
+  "entry": null,
+  "title": ""
+ },
+ "reviews_summary_moto_mla": {
+  "url": "https://www.mercadolibre.com.ar/noindex/catalog/reviews/MLA39328824?noIndex=true&access=view_all&modal=true&controlled=true",
+  "final": "https://www.mercadolibre.com.ar/noindex/catalog/reviews/MLA39328824?noIndex=true&access=view_all&modal=true&controlled=true&skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 333590,
+  "entry": null,
+  "title": ""
+ },
+ "reviews_summary_unknown_mla": {
+  "url": "https://www.mercadolibre.com.ar/noindex/catalog/reviews/MLA99999999999?noIndex=true&access=view_all&modal=true&controlled=true",
+  "final": "https://www.mercadolibre.com.ar/noindex/catalog/reviews/MLA99999999999?noIndex=true&access=view_all&modal=true&controlled=true&skipWebview=true",
+  "status": 200,
+  "hops": 0,
+  "len": 101282,
+  "entry": null,
+  "title": ""
+ },
+ "reviews_search_moto_offset15_mla": {
+  "url": "https://www.mercadolibre.com.ar/noindex/catalog/reviews/MLA39328824/search?objectId=MLA39328824&siteId=MLA&isItem=false&offset=15&limit=30",
+  "status": 200,
+  "len": 180365,
+  "ct": "application/json; charset=utf-8"
+ },
+ "reviews_search_moto_rating1_mla": {
+  "url": "https://www.mercadolibre.com.ar/noindex/catalog/reviews/MLA39328824/search?objectId=MLA39328824&siteId=MLA&isItem=false&offset=0&limit=30&rating=1",
+  "status": 200,
+  "len": 85341,
+  "ct": "application/json; charset=utf-8"
+ },
+ "reviews_search_unknown_mla": {
+  "url": "https://www.mercadolibre.com.ar/noindex/catalog/reviews/MLA99999999999/search?objectId=MLA99999999999&siteId=MLA&isItem=false&offset=0&limit=30",
+  "status": 200,
+  "len": 132,
+  "ct": "application/json; charset=utf-8"
+ },
+ "reviews_search_item_mla": {
+  "url": "https://www.mercadolibre.com.ar/noindex/catalog/reviews/MLA1918268342/search?objectId=MLA1918268342&siteId=MLA&isItem=true&offset=0&limit=30",
+  "status": 200,
+  "len": 167442,
+  "ct": "application/json; charset=utf-8"
+ },
+ "menu_departments_mla": {
+  "url": "https://www.mercadolibre.com.ar/menu/departments",
+  "status": 200,
+  "len": 7110,
+  "ct": "application/json; charset=utf-8"
+ },
+ "menu_departments_mlb": {
+  "url": "https://www.mercadolivre.com.br/menu/departments",
+  "status": 200,
+  "len": 7246,
+  "ct": "application/json; charset=utf-8"
+ },
+ "api_category_MLA1055": {
+  "url": "https://api.mercadolibre.com/categories/MLA1055",
+  "status": 200,
+  "len": 2038,
+  "ct": "application/json; charset=utf-8"
+ },
+ "api_category_unknown": {
+  "url": "https://api.mercadolibre.com/categories/MLA99999999",
+  "status": 404,
+  "len": 89,
+  "ct": "application/json; charset=utf-8"
+ },
+ "api_category_attributes_MLA1055": {
+  "url": "https://api.mercadolibre.com/categories/MLA1055/attributes",
+  "status": 200,
+  "len": 76179,
+  "ct": "application/json; charset=utf-8"
+ },
+ "api_domain_discovery_notebook_mla": {
+  "url": "https://api.mercadolibre.com/sites/MLA/domain_discovery/search?q=notebook&limit=8",
+  "status": 200,
+  "len": 328,
+  "ct": "application/json"
+ },
+ "api_domain_discovery_nomatch_mla": {
+  "url": "https://api.mercadolibre.com/sites/MLA/domain_discovery/search?q=qwzxvasdkjh98127&limit=8",
+  "status": 200,
+  "len": 2,
+  "ct": "application/json"
+ },
+ "stores_search_samsung_mla": {
+  "url": "https://www.mercadolibre.com.ar/tiendas-oficiales/api/sites/MLA/brands/search?q=samsung&platformId=ML",
+  "status": 200,
+  "len": 3013,
+  "ct": "application/json; charset=utf-8"
+ },
+ "stores_all_offset0_mla": {
+  "url": "https://www.mercadolibre.com.ar/tiendas-oficiales/api/sites/MLA/brands/search?status=active&offset=0&limit=100",
+  "status": 200,
+  "len": 268717,
+  "ct": "application/json; charset=utf-8"
+ },
+ "stores_search_nomatch_mla": {
+  "url": "https://www.mercadolibre.com.ar/tiendas-oficiales/api/sites/MLA/brands/search?q=qwzxvasdkjh&platformId=ML",
+  "status": 200,
+  "len": 312,
+  "ct": "application/json; charset=utf-8"
+ },
+ "stores_search_samsung_mlb": {
+  "url": "https://www.mercadolivre.com.br/lojas-oficiais/api/sites/MLB/brands/search?q=samsung&platformId=ML",
+  "status": 200,
+  "len": 2975,
+  "ct": "application/json; charset=utf-8"
+ },
+ "autosuggest_iphone_mla": {
+  "url": "https://http2.mlstatic.com/resources/sites/MLA/autosuggest?showFilters=true&limit=10&api_version=2&q=iphone",
+  "status": 403,
+  "len": 679,
+  "ct": "text/html"
+ },
+ "autosuggest_nomatch_mla": {
+  "url": "https://http2.mlstatic.com/resources/sites/MLA/autosuggest?showFilters=true&limit=10&api_version=2&q=qwzxvasdkjh98127",
+  "status": 403,
+  "len": 688,
+  "ct": "text/html"
+ }
+}
