@@ -16,6 +16,7 @@ Record shapes (all sites share them; ids carry the site prefix):
 """
 import html as html_lib
 import json
+import fastjson
 import math
 import re
 from datetime import datetime, timezone
@@ -67,7 +68,7 @@ def extract_state(html):
             depth -= 1
             if depth == 0:
                 try:
-                    return json.loads(html[start:index + 1])
+                    return fastjson.loads(html[start:index + 1])
                 except ValueError:
                     return None
     return None

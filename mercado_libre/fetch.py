@@ -57,8 +57,11 @@ from urllib.parse import quote
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import config
+import egress
 from scraper_errors import BadRequest, Blocked, NotFound, UpstreamError
 from mercado_libre import refs
+from scraper_utils.pages import page_title as _page_title
+from scraper_utils import responses, retry, sessions as sessions_utils
 
 IMPERSONATE = "chrome"
 PAGE_TIMEOUT = 40      # listing pages are 1–3 MB
@@ -73,13 +76,14 @@ SKIP_WEBVIEW = "skipWebview=true"
 PAGE_HEADERS = {
     "accept": ("text/html,application/xhtml+xml,application/xml;q=0.9,"
                "image/avif,image/webp,*/*;q=0.8"),
-    "accept-language": "es-AR,es;q=0.9,pt-BR;q=0.8,en;q=0.7",
     "user-agent": APP_USER_AGENT,
 }
 JSON_HEADERS = {
     "accept": "application/json, text/plain, */*",
-    "accept-language": "es-AR,es;q=0.9,pt-BR;q=0.8,en;q=0.7",
 }
+# Accept-Language is set per session from its exit (_session): the pod's own
+# IP (the main lane) says en-US, a suggest lane's in-country exit its own
+# language (before 2026-10-29 every lane said es-AR, BR and MX included).
 
 _TITLE_RE = re.compile(r"<title>([^<]*)</title>", re.I)
 _CHALLENGE_MARKERS = ("bot-interceptor-muralla", "gz-account-verification", "captcha-wall-index")
@@ -129,6 +133,7 @@ def _session(lane=MAIN_LANE):
         proxy = _proxy_for(lane)
         if proxy:
             sess.proxies = {"http": proxy, "https": proxy}
+        sess.headers["accept-language"] = egress.accept_language(proxy)   # the exit's language
         sessions[lane] = sess
     return sess
 
@@ -137,44 +142,18 @@ def _drop_session(lane=MAIN_LANE):
     """Close the thread's session on that lane so the retry rides a fresh exit."""
     sessions = getattr(_local, "sessions", None) or {}
     sess = sessions.pop(lane, None)
-    if sess is not None:
-        try:
-            sess.close()
-        except Exception:
-            pass
+    sessions_utils.close_quietly(sess)
 
 
 def _retrying(fn, lane=MAIN_LANE):
     """Run fn() under the shared retry policy (retryable errors only;
     NotFound / BadRequest surface immediately)."""
-    last = None
-    for attempt in range(1, config.MAX_RETRIES + 1):
-        try:
-            return fn()
-        except MercadoLibreUpstreamError as e:
-            last = e
-            _drop_session(lane)
-            if attempt < config.MAX_RETRIES:
-                time.sleep(config.RETRY_BACKOFF * attempt)
-    raise last
-
-
-def _page_title(text):
-    match = _TITLE_RE.search(text or "")
-    return match.group(1).strip() if match else ""
+    return retry.run(fn, config, MercadoLibreUpstreamError, lambda e: _drop_session(lane))
 
 
 def _classify(resp, label):
     """Map an HTTP response to the error taxonomy; return the body text."""
-    if resp.status_code == 404:
-        raise MercadoLibreNotFound(f"{label} not found")
-    if resp.status_code == 400:
-        raise MercadoLibreBadRequest(resp.text[:200])
-    if resp.status_code in (401, 403, 429):
-        raise MercadoLibreBlocked(f"HTTP {resp.status_code} for {label}")
-    if resp.status_code != 200:
-        raise MercadoLibreUpstreamError(f"HTTP {resp.status_code} for {label}")
-    return resp.text
+    return responses.classify(resp, label, MercadoLibreNotFound, MercadoLibreBadRequest, MercadoLibreBlocked, MercadoLibreUpstreamError)
 
 
 def _with_skip_webview(url):
