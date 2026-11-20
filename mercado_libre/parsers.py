@@ -94,6 +94,51 @@ def initial_state(state):
     return ist if isinstance(ist, dict) else None
 
 
+# ---- short links -------------------------------------------------------------------
+
+# shared_items[].type on the sharer's profile page -> the reference kind
+_SHARED_KINDS = {"PRODUCT": "product", "ITEM": "item"}
+
+
+def parse_shared_products(state):
+    """The sharer's profile page a short link opens (<domain>/social/<name>?
+    ref=…, state under appProps.pageProps.data) -> {"products": [product
+    refs, as refs.resolve_product returns them], "collection_link"}, or None
+    when the page shares no product (the share expired and the profile's
+    lists page came up instead).
+
+    One shared product is a "card-featured" component; a shared search or
+    coupon collection is a "carousel-featured" one whose subtitle links the
+    whole listing (collection_link) and whose 5-8 products change between
+    calls like any search."""
+    data = (page_props(state) or {}).get("data")
+    if not isinstance(data, dict):
+        return None
+    shared = data.get("shared_items") or ([data["shared_item"]] if data.get("shared_item") else [])
+    products, seen = [], set()
+    for entry in shared:
+        if not isinstance(entry, dict):
+            continue
+        try:
+            ref = refs.resolve_product(str(entry.get("id") or ""))
+        except ValueError:
+            continue
+        if ref["kind"] == "unknown" and entry.get("type") in _SHARED_KINDS:
+            ref["kind"] = _SHARED_KINDS[entry["type"]]
+        if ref["kind"] == "short_link" or ref["id"] in seen:
+            continue
+        seen.add(ref["id"])
+        products.append(ref)
+    if not products:
+        return None
+    collection_link = None
+    for component in data.get("components") or []:
+        if isinstance(component, dict) and component.get("id") == "carousel-featured":
+            link = (component.get("subtitle") or {}).get("url")
+            collection_link = link.split("#")[0] if link else None
+    return {"products": products, "collection_link": collection_link}
+
+
 # ---- small value helpers ------------------------------------------------------------
 
 def _text(value):

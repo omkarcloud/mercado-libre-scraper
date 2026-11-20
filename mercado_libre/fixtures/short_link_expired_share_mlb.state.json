@@ -1,0 +1,11 @@
+{
+ "title": "Perfil social",
+ "appProps": {
+  "pageProps": {
+   "lists": [],
+   "totalLists": 3,
+   "siteId": "MLB",
+   "limit": 2
+  }
+ }
+}

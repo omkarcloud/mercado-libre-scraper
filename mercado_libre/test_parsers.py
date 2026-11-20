@@ -8,7 +8,8 @@ page's own `_n.ctx.r` state object, `*.json` raw JSON responses. They cover
 the happy path (a search, a catalog product, a user product, a classified,
 reviews), sparse pages (no-stock MLB product, deals past the end) and the
 not-found shells (unknown product / seller / store / category, reviews of an
-unknown id). No network.
+unknown id). The short_link_* states (2026-11-20) are trimmed to the keys
+parse_shared_products reads. No network.
 """
 import json
 import os
@@ -240,6 +241,46 @@ def test_not_found_shells_have_no_state():
         assert P.parse_product(state(name)) is None
         assert P.parse_classified(state(name)) is None
     assert P.parse_best_sellers(state("best_sellers_unknown_mla.state.json")) is None
+
+
+# ---- short links ------------------------------------------------------------------------------------
+
+def test_short_link_to_one_product():
+    shared = P.parse_shared_products(state("short_link_one_product_mlb.state.json"))
+    assert shared == {"products": [{"id": "MLB19307438", "kind": "product", "site": "MLB"}], "collection_link": None}
+
+
+def test_short_link_to_a_collection():
+    shared = P.parse_shared_products(state("short_link_collection_mlb.state.json"))
+    assert len(shared["products"]) == 6
+    assert all(ref["kind"] == "product" and ref["site"] == "MLB" for ref in shared["products"])
+    assert len({ref["id"] for ref in shared["products"]}) == 6
+    # the "show more" listing, without its tracking fragment
+    assert shared["collection_link"] == "https://lista.mercadolivre.com.br/_Container_cupom-gamer"
+
+
+def test_shared_item_types_and_repeats():
+    page = {"appProps": {"pageProps": {"data": {"components": [], "shared_items": [
+        {"id": "MLB4008700429", "type": "ITEM"}, {"id": "MLB19307438", "type": "PRODUCT"},
+        {"id": "MLBU1094657180", "type": "USER_PRODUCT"}, {"id": "MLB19307438", "type": "PRODUCT"},
+        {"id": "MLB61746363", "type": "SOMETHING_NEW"}, {"id": "not-an-id", "type": "PRODUCT"}, None]}}}}
+    assert P.parse_shared_products(page)["products"] == [
+        {"id": "MLB4008700429", "kind": "item", "site": "MLB"},
+        {"id": "MLB19307438", "kind": "product", "site": "MLB"},
+        {"id": "MLBU1094657180", "kind": "user_product", "site": "MLB"},
+        {"id": "MLB61746363", "kind": "unknown", "site": "MLB"},     # tried as a product, then as an item
+    ]
+    # only shared_item (the single form)
+    single = {"appProps": {"pageProps": {"data": {"shared_item": {"id": "MLB19307438", "type": "PRODUCT"}}}}}
+    assert P.parse_shared_products(single)["products"] == [{"id": "MLB19307438", "kind": "product", "site": "MLB"}]
+
+
+def test_pages_that_share_no_product():
+    # an expired share opens the sharer's lists page; a product page has no pageProps.data
+    assert P.parse_shared_products(state("short_link_expired_share_mlb.state.json")) is None
+    assert P.parse_shared_products(state("product_mlb.state.json")) is None
+    assert P.parse_shared_products({"appProps": {"pageProps": {"data": {"shared_items": []}}}}) is None
+    assert P.parse_shared_products(None) is None
 
 
 # ---- classifieds ------------------------------------------------------------------------------------

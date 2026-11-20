@@ -100,6 +100,7 @@ def mount(path, schema_cls, impl, paginated=False):
 
 ENDPOINTS = [
     ("/products/details", schemas.ProductSchema, api.product_details, False),
+    ("/products/short-link", schemas.ShortLinkSchema, api.short_link_products, False),
     ("/search/suggest", schemas.SuggestSchema, api.search_suggest, False),
     ("/products/search", schemas.ProductsSearchSchema, api.products_search, True),
     ("/products/reviews", schemas.ProductReviewsSchema, api.product_reviews, True),

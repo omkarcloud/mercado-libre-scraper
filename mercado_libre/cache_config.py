@@ -13,6 +13,11 @@ SEARCH_CACHE = timedelta(hours=1)
 # One product page parse per product reference: price and stock move, but
 # the same product is typically hit several times in a session.
 PRODUCT_CACHE = timedelta(hours=2)
+# A short link to one product points at that product for good.
+SHORT_LINK_CACHE = timedelta(days=30)
+# A short link to a shared search / coupon collection shows products that
+# change like a search page.
+SHORT_LINK_COLLECTION_CACHE = timedelta(hours=1)
 # Reviews accrue slowly; a page of 30 rarely changes within a day.
 REVIEWS_CACHE = timedelta(hours=12)
 # The department menu and the category API are reference data.

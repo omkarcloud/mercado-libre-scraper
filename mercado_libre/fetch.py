@@ -26,6 +26,11 @@ Upstream surfaces (mercado_libre/refs.py builds the URLs):
         -> initialState.components (VPP / VIP). Unknown ids answer HTTP 404.
         A bare MLA… id is a catalog product OR an item: the product URL is
         tried first, the item URL on its 404.
+  * SHORT LINK  GET meli.la/<code> | mercadolivre.com/sec/<code> -> 301 to
+        <domain>/social/<sharer>?ref=… (the sharer's profile page): its
+        pageProps.data.shared_items names the products. A share that has
+        expired lands on …/social/<sharer>/lists, a list share on
+        …/lists/<uuid>, some on /ofertas: none of those name a product.
   * REVIEWS   GET <domain>/noindex/catalog/reviews/<id>/search?... JSON
         (offset / limit / rating; an item id resolves to its catalog
         product) and the summary page …/reviews/<id>?…&modal=true
@@ -241,6 +246,23 @@ def fetch_product(ref):
             raise
     html, final = get_page(refs.item_link(site, ident), f"item {ident}")
     return html, final, "item"
+
+
+# ---- short links ------------------------------------------------------------
+
+def fetch_short_link(link):
+    """The page a short link (refs.short_link) opens. The shortener answers
+    one 301 (it takes the skipWebview flag without complaint, checked
+    2026-11-20) to the sharer's profile page, which renders its state for the
+    app identity like every other page; an unknown code answers 404.
+    Returns (html, final_url)."""
+    return get_page(link, f"short link {link.rsplit('/', 1)[-1]}")
+
+
+def release_session(lane=MAIN_LANE):
+    """Close this thread's session: for the short-lived worker threads a
+    multi-product short link is loaded on."""
+    _drop_session(lane)
 
 
 # ---- reviews ----------------------------------------------------------------

@@ -189,6 +189,47 @@ def test_classified_schema():
     assert loaded["page"] == 1 and loaded["sort"] == "price_asc"
 
 
+# ---- short links -------------------------------------------------------------------------------------
+
+@pytest.mark.parametrize("value,expected", [
+    ("https://meli.la/2CVs2dw", "https://meli.la/2CVs2dw"),
+    ("meli.la/2CVs2dw", "https://meli.la/2CVs2dw"),                       # pasted from a chat, no scheme
+    ("http://www.meli.la/2CVs2dw/?utm=x#frag", "https://meli.la/2CVs2dw"),
+    ("https://mercadolivre.com/sec/2U6U32Q", "https://mercadolivre.com/sec/2U6U32Q"),
+    ("https://www.mercadolivre.com.br/sec/1TTwcDm?a=b", "https://mercadolivre.com.br/sec/1TTwcDm"),
+    ("https://mercadolibre.com/sec/1AbCdEf", "https://mercadolibre.com/sec/1AbCdEf"),
+])
+def test_short_links_are_recognised(value, expected):
+    assert refs.short_link(value) == expected
+    assert refs.resolve_short_link(value) == expected
+    # the product param only marks it: the products behind it are known once it is opened
+    assert refs.resolve_product(value) == {"id": expected, "kind": "short_link", "site": None}
+
+
+@pytest.mark.parametrize("value", [
+    "https://meli.la/", "https://meli.la/a/b", "https://meli.la/ab", "https://example.com/2CVs2dw",
+    "https://bit.ly/2CVs2dw", "https://www.mercadolivre.com.br/sec/", "MLB19307438",
+    "https://www.mercadolivre.com.br/p/MLB19307438", "2CVs2dw",
+])
+def test_other_values_are_not_short_links(value):
+    assert refs.short_link(value) is None
+    with pytest.raises(ValueError):
+        refs.resolve_short_link(value)
+
+
+def test_short_link_schemas():
+    assert schemas.ShortLinkSchema().load({"link": " meli.la/2CVs2dw "}) == {"link": "https://meli.la/2CVs2dw"}
+    for bad in ({}, {"link": ""}, {"link": "MLB19307438"}, {"link": "https://www.mercadolivre.com.br/p/MLB19307438"}):
+        with pytest.raises(ValidationError):
+            schemas.ShortLinkSchema().load(bad)
+    marked = {"id": "https://meli.la/2CVs2dw", "kind": "short_link", "site": None}
+    assert schemas.ProductSchema().load({"product": "https://meli.la/2CVs2dw"}) == {"product": marked}
+    assert schemas.ProductReviewsSchema().load({"product": "https://meli.la/2CVs2dw"})["product"] == marked
+    # a classified is never behind a short link
+    with pytest.raises(ValidationError):
+        schemas.ClassifiedSchema().load({"listing": "https://meli.la/2CVs2dw"})
+
+
 # ---- URL grammar -------------------------------------------------------------------------------------
 
 def test_search_url_grammar():

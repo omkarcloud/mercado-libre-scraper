@@ -370,5 +370,32 @@
   "status": 403,
   "len": 688,
   "ct": "text/html"
+ },
+ "short_link_one_product_mlb": {
+  "url": "https://meli.la/2CVs2dw",
+  "final": "https://www.mercadolivre.com.br/social/<sharer>?matt_word=…&matt_tool=…&forceInApp=true&ref=…&skipWebview=true",
+  "status": 200,
+  "hops": 1,
+  "len": 426272,
+  "entry": "trimmed to pageProps.data.shared_item(s) + component ids (captured 2026-11-20)",
+  "title": ""
+ },
+ "short_link_collection_mlb": {
+  "url": "https://meli.la/13ypyPd",
+  "final": "https://www.mercadolivre.com.br/social/<sharer>?matt_word=…&matt_tool=…&forceInApp=true&ref=…&skipWebview=true",
+  "status": 200,
+  "hops": 1,
+  "len": 502926,
+  "entry": "trimmed to pageProps.data.shared_item(s) + component ids (captured 2026-11-20)",
+  "title": ""
+ },
+ "short_link_expired_share_mlb": {
+  "url": "https://meli.la/2sQj1zj",
+  "final": "https://www.mercadolivre.com.br/social/<sharer>/lists?skipWebview=true",
+  "status": 200,
+  "hops": 1,
+  "len": 221956,
+  "entry": "trimmed: the sharer's lists page, no shared product (captured 2026-11-20)",
+  "title": "Perfil social"
  }
 }

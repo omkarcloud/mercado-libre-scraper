@@ -1,0 +1,38 @@
+{
+ "title": "<sharer> | Perfil Social",
+ "appProps": {
+  "pageProps": {
+   "data": {
+    "components": [
+     {
+      "id": "affiliate-profile-header",
+      "type": "header"
+     },
+     {
+      "id": "card-featured",
+      "type": "recommendations"
+     },
+     {
+      "id": "denounce-profile",
+      "type": "denounce-profile"
+     },
+     {
+      "id": "tabs",
+      "type": "tabs"
+     }
+    ],
+    "shared_item": {
+     "id": "MLB19307438",
+     "type": "PRODUCT"
+    },
+    "shared_items": [
+     {
+      "id": "MLB19307438",
+      "type": "PRODUCT"
+     }
+    ]
+   },
+   "siteId": "MLB"
+  }
+ }
+}

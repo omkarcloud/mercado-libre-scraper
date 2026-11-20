@@ -84,17 +84,18 @@ curl "http://localhost:8000/products/details?product=MLA1932888020"
 }
 ```
 
-All 14 endpoints are now live at `http://localhost:8000`.
+All 15 endpoints are now live at `http://localhost:8000`.
 
 Need search suggestions for Argentina (`site=MLA`)? That one endpoint only answers Argentine IPs, so set `MERCADO_LIBRE_PROXY=http://user:pass@host:port` (a proxy in Argentina) before `python run.py`. Everything else needs no proxy at all.
 
 ## 📚 Endpoints
 
-14 endpoints cover everything you need.
+15 endpoints cover everything you need.
 
 | Endpoint | Path | Returns |
 |---|---|---|
 | Product Details | `/products/details` | Price, installments, stock, specs, photos, ratings and seller in one call |
+| Short Link Products | `/products/short-link` | Every product behind a `meli.la` short link, with full details |
 | Search Suggestions | `/search/suggest` | What buyers type, as they type it |
 | Search Products | `/products/search` | 50 listings per page with price, discount, rating and shipping |
 | Product Reviews | `/products/reviews` | 30 reviews per page plus star breakdown and AI summary |

@@ -1,8 +1,9 @@
 """A small in-memory response cache, so repeated calls in one run are free.
 
 `cached_call(namespace, data, fn, ttl)` serves fn(**data) from memory for
-`ttl` (a timedelta), else runs it and stores the result. Entries live only
-as long as the process; exceptions are never cached.
+`ttl` (a timedelta, or a function (data, result) -> timedelta that decides
+once the result is known), else runs it and stores the result. Entries live
+only as long as the process; exceptions are never cached.
 """
 import json
 import threading
@@ -18,14 +19,15 @@ def _key(namespace, data):
 
 
 def cached_call(namespace, data, fn, ttl, cache=True, refresh=False):
-    seconds = ttl.total_seconds() if ttl else 0
     key = _key(namespace, data)
-    if cache and seconds and not refresh:
+    if cache and ttl and not refresh:
         with _lock:
             hit = _store.get(key)
         if hit and hit[0] > time.monotonic():
             return hit[1]
     result = fn(**data)
+    keep = ttl(data, result) if callable(ttl) else ttl
+    seconds = keep.total_seconds() if keep else 0
     if cache and seconds:
         with _lock:
             if len(_store) >= MAX_ENTRIES:

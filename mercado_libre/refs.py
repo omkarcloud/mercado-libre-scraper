@@ -15,6 +15,13 @@ Identifier shapes (captured 2026-10-24):
                      or /p/MLA39328824. Same prefix + digits as an item, so
                      a bare id is tried as a product first, then as an item.
   * user product     MLAU3735180826 — a seller's own product page, /up/<id>
+  * short link       meli.la/<code>, mercadolivre.com/sec/<code> (older
+                     form) — what the app's share button and the affiliate
+                     program hand out (checked 2026-11-20 on 23 links). It
+                     redirects to the sharer's profile page, never to the
+                     product; that page's state names the shared products
+                     (parsers.parse_shared_products). A resolver only marks
+                     the value (kind "short_link"); the api layer opens it.
   * seller           numeric user id; link forms listado…/_CustId_<id>,
                      ?seller_id=<id>. Nicknames (/perfil/<nick>) have no
                      public listing page any more, so they are rejected.
@@ -73,6 +80,14 @@ _LINK_STORE_PATH_RE = re.compile(r"/(?:tienda|loja)/([a-z0-9][a-z0-9\-_.]{0,100}
 _LINK_BEST_SELLERS_RE = re.compile(r"/mas-vendidos/((?:ML[A-Z]|M[A-Z]{2})\d{1,9})", re.I)
 _LINK_CATEGORY_PARAM_RE = re.compile(r"[?&](?:category|category_id)=((?:ML[A-Z]|M[A-Z]{2})\d{1,9})", re.I)
 
+# Short links: the site's own shortener. Codes are case-sensitive.
+SHORT_LINK_HOST = "meli.la"
+_SHORT_LINK_GLOBAL_HOSTS = ("mercadolivre.com", "mercadolibre.com")
+_SHORT_CODE_RE = re.compile(r"^/([A-Za-z0-9]{4,24})/?$")
+_SHORT_SEC_RE = re.compile(r"^/sec/([A-Za-z0-9]{4,24})/?$")
+SHORT_LINK_MESSAGE = ("Must be a Mercado Libre short link (https://meli.la/2CVs2dw or "
+                      "https://mercadolivre.com/sec/2CVs2dw).")
+
 
 # ---- sites -----------------------------------------------------------------------
 
@@ -128,15 +143,54 @@ def _site_link(value):
     return url, site
 
 
+# ---- short links ---------------------------------------------------------------
+
+def short_link(value):
+    """A Mercado Libre short link -> its normalised form (https, lower-case
+    host, no query), or None for anything else. `meli.la/<code>` is accepted
+    without its scheme: that is how the links are pasted in chats."""
+    value = (value or "").strip()
+    if value.lower().startswith((SHORT_LINK_HOST + "/", "www." + SHORT_LINK_HOST + "/")):
+        value = "https://" + value
+    if not _is_link(value):
+        return None
+    parsed = urlparse(_as_url(value))
+    host = (parsed.hostname or "").lower()
+    bare = host[4:] if host.startswith("www.") else host
+    if bare == SHORT_LINK_HOST:
+        match = _SHORT_CODE_RE.match(parsed.path)
+        return f"https://{SHORT_LINK_HOST}/{match.group(1)}" if match else None
+    if bare in _SHORT_LINK_GLOBAL_HOSTS or bare in _DOMAIN_TO_SITE:
+        match = _SHORT_SEC_RE.match(parsed.path)
+        return f"https://{bare}/sec/{match.group(1)}" if match else None
+    return None
+
+
+def resolve_short_link(value):
+    """A short link -> its normalised form; anything else is refused."""
+    value = (value or "").strip()
+    if not value:
+        raise ValueError("Must not be empty.")
+    link = short_link(value)
+    if not link:
+        raise ValueError(SHORT_LINK_MESSAGE)
+    return link
+
+
 # ---- products / items --------------------------------------------------------
 
 def resolve_product(value):
     """Bare id or product link -> {"id", "kind", "site"}; kind is "product"
-    (catalog page), "item", "user_product" or "unknown" (a bare MLA… id, which
-    is a product or an item: fetch tries the product page first)."""
+    (catalog page), "item", "user_product", "unknown" (a bare MLA… id, which
+    is a product or an item: fetch tries the product page first) or
+    "short_link" (id = the normalised link, site None: the products behind
+    it are only known once the api layer opens it)."""
     value = (value or "").strip()
     if not value:
         raise ValueError("Must not be empty.")
+    shortened = short_link(value)
+    if shortened:
+        return {"id": shortened, "kind": "short_link", "site": None}
     if _is_link(value):
         url, site = _site_link(value)
         for regex, kind in ((_LINK_USER_PRODUCT_RE, "user_product"), (_LINK_PRODUCT_RE, "product"),
@@ -154,7 +208,8 @@ def resolve_product(value):
             ident = match.group(1).upper()
             return {"id": ident, "kind": "item", "site": site_from_id(ident) or site}
         raise ValueError("Must be a Mercado Libre product link (…/p/MLA39328824, "
-                         "articulo.mercadolibre.com.ar/MLA-1918268342-_JM or …/up/MLAU…).")
+                         "articulo.mercadolibre.com.ar/MLA-1918268342-_JM, …/up/MLAU… or a "
+                         "meli.la short link).")
     candidate = value.upper()
     if USER_PRODUCT_RE.match(candidate) and site_from_id(candidate):
         return {"id": candidate, "kind": "user_product", "site": site_from_id(candidate)}
@@ -317,7 +372,7 @@ def _has_filters(path):
 def resolve_classified(value):
     """A classified listing id (MLA4117637236) or its link -> {"id", "site"}."""
     ref = resolve_product(value)
-    if ref["kind"] in ("product", "user_product"):
+    if ref["kind"] in ("product", "user_product", "short_link"):
         raise ValueError("Must be a classified listing id (MLA4117637236) or its link "
                          "(departamento.mercadolibre.com.ar/MLA-4117637236-…-_JM).")
     return {"id": ref["id"], "site": ref["site"]}

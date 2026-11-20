@@ -6,9 +6,15 @@ params). products/details caches ONE parsed page per product reference
 (_product_record) and reads it back for the review-summary fallback, so a
 client hitting details and reviews on the same product pays one page fetch
 plus the small reviews XHR.
+
+A short link (meli.la/<code>) names its products only once it is opened, so
+it is expanded here, never in the schema: _short_link caches the product
+references behind it, and each of them then rides the same per-product
+cache as a bare id.
 """
 import math
 import re
+from functools import partial
 from urllib.parse import urlparse
 
 from cache import cached_call
@@ -17,11 +23,15 @@ from mercado_libre import parsers, refs
 from mercado_libre.fetch import (MercadoLibreBadRequest, MercadoLibreNotFound, fetch_autosuggest,
                                  fetch_category_api, fetch_category_attributes, fetch_domain_discovery,
                                  fetch_listing, fetch_menu, fetch_product, fetch_reviews, fetch_reviews_summary,
-                                 fetch_stores, fetch_stores_landing, get_page)
+                                 fetch_short_link, fetch_stores, fetch_stores_landing, get_page, release_session)
+from scraper_utils import fanout
 
 REVIEWS_PAGE_SIZE = 30
 REVIEWS_MAX_PAGES = 11   # the site's own depth limit per review query (330 reviews)
 STORES_PAGE_SIZE = 100
+# Product pages loaded at once for a short link that shares a collection
+# (5-8 products).
+SHORT_LINK_WORKERS = 4
 
 
 def _filters(data):
@@ -84,10 +94,97 @@ def _record(product):
     return cached_call("mercado_libre.product", {"product": product}, _product_record, ttl.PRODUCT_CACHE)
 
 
-def product_details(product):
+def _details(product):
     record = dict(_record(product))
     record.pop("requested", None)
     return record
+
+
+def product_details(product):
+    """One product record; for a short link, the list of the products it
+    shares (short_link_products), one or many."""
+    if product["kind"] == "short_link":
+        return short_link_products(product["id"])
+    return _details(product)
+
+
+# ---- short links ------------------------------------------------------------------------
+
+def _short_link_target(link):
+    """Open a short link -> {"site", "products": [product refs],
+    "collection_link"}. ValueError (a 400 with this message) when the page
+    it opens names no product."""
+    html, final_url = fetch_short_link(link)
+    parsed = urlparse(final_url)
+    site = refs.site_from_host(parsed.hostname)
+    if site and parsed.path.startswith("/social/"):
+        shared = parsers.parse_shared_products(parsers.extract_state(html))
+        if shared:
+            return {"site": site, **shared}
+    elif site:
+        # a short link straight to a product page
+        try:
+            ref = refs.resolve_product(final_url.split("#")[0])
+        except ValueError:
+            ref = None
+        if ref and ref["kind"] != "short_link":
+            return {"site": ref["site"], "products": [ref], "collection_link": None}
+    raise ValueError("This short link opens a page that shares no product (a list, an offers page "
+                     "or a share that has expired).")
+
+
+def _short_link_ttl(data, result):
+    if result["collection_link"] or len(result["products"]) > 1:
+        return ttl.SHORT_LINK_COLLECTION_CACHE
+    return ttl.SHORT_LINK_CACHE
+
+
+def _short_link(link):
+    return cached_call("mercado_libre.short_link", {"link": link}, _short_link_target, _short_link_ttl)
+
+
+def _details_on_worker(product):
+    try:
+        return _details(product)
+    finally:
+        release_session()   # the worker thread ends with this call
+
+
+def short_link_products(link):
+    """products/short-link, and products/details given a short link: the
+    full record of every product the link shares, always as a list. A
+    product that is no longer listed is left out; any other failure fails
+    the call, so a list is never silently short."""
+    target = _short_link(link)
+    products = target["products"]
+    if len(products) == 1:
+        try:
+            outcomes = [("ok", _details(products[0]))]
+        except MercadoLibreNotFound as e:
+            outcomes = [("error", e)]
+    else:
+        outcomes = fanout.guarded_per_call([partial(_details_on_worker, product) for product in products],
+                                           SHORT_LINK_WORKERS)
+    results = []
+    for status, value in outcomes:
+        if status == "ok":
+            results.append(value)
+        elif not isinstance(value, MercadoLibreNotFound):
+            raise value
+    if not results:
+        raise MercadoLibreNotFound("the product this short link shares is no longer listed")
+    return {"short_link": link, "site": target["site"], "count": len(results),
+            "collection_link": target["collection_link"], "results": results}
+
+
+def _single_product(link):
+    """The one product behind a short link, for the endpoints that work on
+    exactly one product."""
+    products = _short_link(link)["products"]
+    if len(products) > 1:
+        raise ValueError(f"This short link shares {len(products)} products; pass one product id or link "
+                         "(products/short-link lists them).")
+    return products[0]
 
 
 # ---- products/reviews ------------------------------------------------------------------
@@ -97,6 +194,8 @@ def _product_reviews(product, page, rating):
     the isItem flag and then refuses the rating filter, so every reference
     is first resolved through the (cached) product page record: it names
     the catalog product id, whose reviews object carries the summary too."""
+    if product["kind"] == "short_link":
+        product = _single_product(product["id"])
     site = product["site"]
     # an unknown product id is the product page's 404; a known product with
     # no reviews is an empty page

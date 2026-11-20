@@ -1,0 +1,63 @@
+{
+ "title": "<sharer> | Perfil Social",
+ "appProps": {
+  "pageProps": {
+   "data": {
+    "components": [
+     {
+      "id": "affiliate-profile-header",
+      "type": "header"
+     },
+     {
+      "id": "carousel-featured",
+      "type": "recommendations",
+      "title": "Busca de <sharer>",
+      "subtitle": {
+       "text": "Mostrar mais",
+       "url": "https://lista.mercadolivre.com.br/_Container_cupom-gamer#tracking_id=00000000-0000-0000-0000-000000000000&source=affiliate-profile"
+      }
+     },
+     {
+      "id": "denounce-profile",
+      "type": "denounce-profile"
+     },
+     {
+      "id": "tabs",
+      "type": "tabs"
+     }
+    ],
+    "shared_item": {
+     "id": "MLB49653023",
+     "type": "PRODUCT"
+    },
+    "shared_items": [
+     {
+      "id": "MLB49653023",
+      "type": "PRODUCT"
+     },
+     {
+      "id": "MLB34016199",
+      "type": "PRODUCT"
+     },
+     {
+      "id": "MLB24028629",
+      "type": "PRODUCT"
+     },
+     {
+      "id": "MLB59660744",
+      "type": "PRODUCT"
+     },
+     {
+      "id": "MLB65276331",
+      "type": "PRODUCT"
+     },
+     {
+      "id": "MLB46220740",
+      "type": "PRODUCT"
+     }
+    ]
+   },
+   "siteId": "MLB"
+  }
+ }
+}
