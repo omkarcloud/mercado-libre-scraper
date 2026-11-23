@@ -95,7 +95,7 @@ Need search suggestions for Argentina (`site=MLA`)? That one endpoint only answe
 | Endpoint | Path | Returns |
 |---|---|---|
 | Product Details | `/products/details` | Price, installments, stock, specs, photos, ratings and seller in one call |
-| Short Link Products | `/products/short-link` | Every product behind a `meli.la` short link, with full details |
+| Short Link Products | `/products/short-link` | Every product behind a `meli.la` short link or its social link, with full details |
 | Search Suggestions | `/search/suggest` | What buyers type, as they type it |
 | Search Products | `/products/search` | 50 listings per page with price, discount, rating and shipping |
 | Product Reviews | `/products/reviews` | 30 reviews per page plus star breakdown and AI summary |

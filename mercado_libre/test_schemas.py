@@ -198,6 +198,16 @@ def test_classified_schema():
     ("https://mercadolivre.com/sec/2U6U32Q", "https://mercadolivre.com/sec/2U6U32Q"),
     ("https://www.mercadolivre.com.br/sec/1TTwcDm?a=b", "https://mercadolivre.com.br/sec/1TTwcDm"),
     ("https://mercadolibre.com/sec/1AbCdEf", "https://mercadolibre.com/sec/1AbCdEf"),
+    # the social page a short link opens: the query stays as given (its ref token names the share)
+    ("https://www.mercadolivre.com.br/social/dj20241123223221?matt_word=dj20241123223221&matt_tool=71225177"
+     "&forceInApp=true&ref=BERurU8tRuNTjJN%2Bgdp4491MV%3D%3D",
+     "https://www.mercadolivre.com.br/social/dj20241123223221?matt_word=dj20241123223221&matt_tool=71225177"
+     "&forceInApp=true&ref=BERurU8tRuNTjJN%2Bgdp4491MV%3D%3D"),
+    ("WWW.mercadolivre.com.br/social/sharer?ref=a%2Bb%3D&skipWebview=true#frag",
+     "https://www.mercadolivre.com.br/social/sharer?ref=a%2Bb%3D"),
+    ("https://www.mercadolibre.com.ar/social/vendedor?ref=x", "https://www.mercadolibre.com.ar/social/vendedor?ref=x"),
+    ("https://www.mercadolivre.com.br/social/promotom/lists/8f90988a-1c69",
+     "https://www.mercadolivre.com.br/social/promotom/lists/8f90988a-1c69"),
 ])
 def test_short_links_are_recognised(value, expected):
     assert refs.short_link(value) == expected
@@ -209,6 +219,8 @@ def test_short_links_are_recognised(value, expected):
 @pytest.mark.parametrize("value", [
     "https://meli.la/", "https://meli.la/a/b", "https://meli.la/ab", "https://example.com/2CVs2dw",
     "https://bit.ly/2CVs2dw", "https://www.mercadolivre.com.br/sec/", "MLB19307438",
+    "https://www.mercadolivre.com.br/social/", "https://example.com/social/sharer?ref=x",
+    "https://www.mercadolivre.com.br/social/a/b/c/d",
     "https://www.mercadolivre.com.br/p/MLB19307438", "2CVs2dw",
 ])
 def test_other_values_are_not_short_links(value):

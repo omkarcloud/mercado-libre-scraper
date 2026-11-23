@@ -5,8 +5,9 @@ ONE param per input (tripadvisor QueryOrIdField convention, never a sibling
 
     product    an item id (MLA1918268342), a catalog product id (MLA39328824),
                a user-product id (MLAU3735180826), the product link OR a
-               short link (meli.la/<code>, mercadolivre.com/sec/<code>)
-    link       a short link only (products/short-link)
+               short link (meli.la/<code>, mercadolivre.com/sec/<code>) or
+               the social page it opens (<domain>/social/<name>?…&ref=…)
+    link       a short link or a social link only (products/short-link)
     seller     a numeric seller id OR a seller listing link (…/_CustId_<id>)
     store      an official-store slug OR the store link (tienda.<domain>/<slug>)
     category   a category id (MLA1055) OR a category listing link
@@ -116,17 +117,19 @@ class ProductsSearchSchema(_ListingFilters):
 class ProductSchema(BaseSchema):
     product = ProductRefField(metadata={
         "description": "item id (MLA1918268342), catalog product id (MLA39328824), user-product id (MLAU3735180826), the product link, "
-                       "or a short link (https://meli.la/2CVs2dw): a short link answers with the list of the products it shares"})
+                       "a short link (https://meli.la/2CVs2dw) or the social link it opens (https://www.mercadolivre.com.br/social/<name>?…&ref=…): "
+                       "those answer with the list of the products they share"})
 
 
 class ShortLinkSchema(BaseSchema):
     link = ShortLinkField(metadata={
-        "description": "a Mercado Libre short link: https://meli.la/2CVs2dw or https://mercadolivre.com/sec/2CVs2dw"})
+        "description": "a Mercado Libre short link (https://meli.la/2CVs2dw, https://mercadolivre.com/sec/2CVs2dw) "
+                       "or the social link it opens (https://www.mercadolivre.com.br/social/<name>?…&ref=…)"})
 
 
 class ProductReviewsSchema(BaseSchema):
     product = ProductRefField(metadata={
-        "description": "item id, catalog product id, the product link or a short link to one product "
+        "description": "item id, catalog product id, the product link, or a short / social link to one product "
                        "(an item resolves to its catalog product's reviews)"})
     page = PageField(max_page=MAX_REVIEWS_PAGE, metadata={"description": "page number, 30 reviews per page (Mercado Libre serves the first 330 reviews of a query)"})
     rating = PositiveInt(max_value=5, metadata={"description": "only reviews with this star rating (1-5)"})

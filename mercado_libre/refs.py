@@ -22,6 +22,11 @@ Identifier shapes (captured 2026-10-24):
                      product; that page's state names the shared products
                      (parsers.parse_shared_products). A resolver only marks
                      the value (kind "short_link"); the api layer opens it.
+  * social link      <domain>/social/<sharer>?…&ref=<token> — the page a
+                     short link opens, taken as the same input (kind
+                     "short_link"). Its query is kept exactly as given: the
+                     `ref` token is what names the shared products; without
+                     it the page is the sharer's lists (checked 2026-11-23).
   * seller           numeric user id; link forms listado…/_CustId_<id>,
                      ?seller_id=<id>. Nicknames (/perfil/<nick>) have no
                      public listing page any more, so they are rejected.
@@ -31,7 +36,7 @@ Identifier shapes (captured 2026-10-24):
                      on MLB) or a classifieds vertical link
 """
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlsplit
 
 # site id -> (ISO country, registrable domain, search host label, item host
 # label, store host label, official-stores path, currency)
@@ -85,8 +90,11 @@ SHORT_LINK_HOST = "meli.la"
 _SHORT_LINK_GLOBAL_HOSTS = ("mercadolivre.com", "mercadolibre.com")
 _SHORT_CODE_RE = re.compile(r"^/([A-Za-z0-9]{4,24})/?$")
 _SHORT_SEC_RE = re.compile(r"^/sec/([A-Za-z0-9]{4,24})/?$")
-SHORT_LINK_MESSAGE = ("Must be a Mercado Libre short link (https://meli.la/2CVs2dw or "
-                      "https://mercadolivre.com/sec/2CVs2dw).")
+_SOCIAL_PATH_RE = re.compile(r"^/social/[A-Za-z0-9_.\-]{1,80}(?:/[A-Za-z0-9_.\-]{1,80}){0,2}/?$")
+_BARE_SOCIAL_RE = re.compile(r"^(?:www\.)?mercadoli[bv]re\.[a-z.]+/social/", re.I)
+SHORT_LINK_MESSAGE = ("Must be a Mercado Libre short link (https://meli.la/2CVs2dw, "
+                      "https://mercadolivre.com/sec/2CVs2dw) or the page it opens "
+                      "(https://www.mercadolivre.com.br/social/<name>?…&ref=…).")
 
 
 # ---- sites -----------------------------------------------------------------------
@@ -145,12 +153,25 @@ def _site_link(value):
 
 # ---- short links ---------------------------------------------------------------
 
+def _social_link(value):
+    """A <domain>/social/<sharer>… link -> https, lower-case host, the query
+    as given minus a skipWebview flag, no fragment; None for anything else."""
+    parts = urlsplit(_as_url(value))
+    host = (parts.hostname or "").lower()
+    if not site_from_host(host) or not _SOCIAL_PATH_RE.match(parts.path):
+        return None
+    query = "&".join(x for x in parts.query.split("&") if x and x.lower() != "skipwebview=true")
+    return f"https://{host}{parts.path}" + (f"?{query}" if query else "")
+
+
 def short_link(value):
-    """A Mercado Libre short link -> its normalised form (https, lower-case
-    host, no query), or None for anything else. `meli.la/<code>` is accepted
-    without its scheme: that is how the links are pasted in chats."""
+    """A Mercado Libre short link, or the social page it opens -> its
+    normalised form, or None for anything else. A short link keeps no query;
+    a social link keeps its query (the `ref` token names the share).
+    `meli.la/<code>` and `mercadolivre.com.br/social/…` are accepted without
+    their scheme: that is how the links are pasted in chats."""
     value = (value or "").strip()
-    if value.lower().startswith((SHORT_LINK_HOST + "/", "www." + SHORT_LINK_HOST + "/")):
+    if value.lower().startswith((SHORT_LINK_HOST + "/", "www." + SHORT_LINK_HOST + "/")) or _BARE_SOCIAL_RE.match(value):
         value = "https://" + value
     if not _is_link(value):
         return None
@@ -162,12 +183,14 @@ def short_link(value):
         return f"https://{SHORT_LINK_HOST}/{match.group(1)}" if match else None
     if bare in _SHORT_LINK_GLOBAL_HOSTS or bare in _DOMAIN_TO_SITE:
         match = _SHORT_SEC_RE.match(parsed.path)
-        return f"https://{bare}/sec/{match.group(1)}" if match else None
-    return None
+        if match:
+            return f"https://{bare}/sec/{match.group(1)}"
+    return _social_link(value)
 
 
 def resolve_short_link(value):
-    """A short link -> its normalised form; anything else is refused."""
+    """A short link or a social link -> its normalised form; anything else
+    is refused."""
     value = (value or "").strip()
     if not value:
         raise ValueError("Must not be empty.")

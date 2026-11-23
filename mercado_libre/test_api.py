@@ -16,6 +16,7 @@ from mercado_libre.fetch import MercadoLibreBlocked, MercadoLibreNotFound  # noq
 
 FIXTURES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures")
 ONE, MANY, EXPIRED = "https://meli.la/2CVs2dw", "https://meli.la/13ypyPd", "https://meli.la/2sQj1zj"
+SOCIAL = "https://www.mercadolivre.com.br/social/sharer?matt_tool=1&forceInApp=true&ref=BERu%2Bgdp%3D%3D"
 PROFILE = "https://www.mercadolivre.com.br/social/sharer?matt_tool=1&ref=x&skipWebview=true"
 
 
@@ -28,6 +29,7 @@ def page(name):
 LANDINGS = {
     ONE: (page("short_link_one_product_mlb.state.json"), PROFILE),
     MANY: (page("short_link_collection_mlb.state.json"), PROFILE),
+    SOCIAL: (page("short_link_one_product_mlb.state.json"), SOCIAL + "&skipWebview=true"),
     EXPIRED: (page("short_link_expired_share_mlb.state.json"), "https://www.mercadolivre.com.br/social/sharer/lists?skipWebview=true"),
     "https://mercadolivre.com/sec/list": ("<script>_n.ctx.r={};</script>",
                                           "https://www.mercadolivre.com.br/social/sharer/lists/8f90988a?matt_tool=1&skipWebview=true"),
@@ -93,6 +95,15 @@ def test_collection_link_answers_every_shared_product(fakes):
     assert all("requested" not in r for r in out["results"])
     # a collection's products change like a search: kept for an hour
     assert ("mercado_libre.short_link", cache_config.SHORT_LINK_COLLECTION_CACHE) in fakes["cache"]
+
+
+def test_a_social_link_answers_like_its_short_link(fakes):
+    """The page a short link opens, given directly: same list, opened as given."""
+    out = api.product_details(ref(SOCIAL))
+    assert out["short_link"] == SOCIAL and out["count"] == 1
+    assert out["results"][0]["id"] == "MLB19307438" and out["site"] == "MLB"
+    assert fakes["short"] == [SOCIAL]
+    assert api.short_link_products(refs.resolve_short_link(SOCIAL)) == out
 
 
 def test_the_endpoint_and_details_answer_the_same(fakes):

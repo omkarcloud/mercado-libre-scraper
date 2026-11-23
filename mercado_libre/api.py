@@ -129,7 +129,7 @@ def _short_link_target(link):
             ref = None
         if ref and ref["kind"] != "short_link":
             return {"site": ref["site"], "products": [ref], "collection_link": None}
-    raise ValueError("This short link opens a page that shares no product (a list, an offers page "
+    raise ValueError("This link opens a page that shares no product (a list, an offers page "
                      "or a share that has expired).")
 
 
@@ -182,7 +182,7 @@ def _single_product(link):
     exactly one product."""
     products = _short_link(link)["products"]
     if len(products) > 1:
-        raise ValueError(f"This short link shares {len(products)} products; pass one product id or link "
+        raise ValueError(f"This link shares {len(products)} products; pass one product id or link "
                          "(products/short-link lists them).")
     return products[0]
 

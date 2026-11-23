@@ -31,6 +31,8 @@ Upstream surfaces (mercado_libre/refs.py builds the URLs):
         pageProps.data.shared_items names the products. A share that has
         expired lands on …/social/<sharer>/lists, a list share on
         …/lists/<uuid>, some on /ofertas: none of those name a product.
+        The social page itself is taken as input too (refs.short_link): it
+        is fetched the same way, its `ref` query naming the share.
   * REVIEWS   GET <domain>/noindex/catalog/reviews/<id>/search?... JSON
         (offset / limit / rating; an item id resolves to its catalog
         product) and the summary page …/reviews/<id>?…&modal=true
